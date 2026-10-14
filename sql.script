@@ -1,0 +1,73 @@
+CREATE DATABASE attendance_system;
+USE attendance_system;
+
+-- Users table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'lecturer', 'student') NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Students table
+CREATE TABLE students (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT UNIQUE,
+    student_id VARCHAR(20) UNIQUE NOT NULL,
+    course VARCHAR(100),
+    phone VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Courses table
+CREATE TABLE courses (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    course_code VARCHAR(20) UNIQUE NOT NULL,
+    course_name VARCHAR(100) NOT NULL,
+    description TEXT
+);
+
+-- Sessions table
+CREATE TABLE sessions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    course_id INT,
+    session_code VARCHAR(50) UNIQUE NOT NULL,
+    session_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    topic VARCHAR(200),
+    qr_image VARCHAR(255),
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- Attendance table
+CREATE TABLE attendance (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    session_id INT,
+    student_id INT,
+    scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('present', 'late') DEFAULT 'present',
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    UNIQUE KEY unique_attendance (session_id, student_id)
+);
+
+-- Insert sample admin
+INSERT INTO users (username, password, role, full_name) 
+VALUES ('admin', MD5('admin123'), 'admin', 'System Administrator');
+
+-- Insert sample student
+INSERT INTO users (username, password, role, full_name) 
+VALUES ('student1', MD5('student123'), 'student', 'John Doe');
+
+INSERT INTO students (user_id, student_id, course, phone) 
+VALUES (2, 'STU001', 'Computer Science', '1234567890');
+
+-- Insert sample course
+INSERT INTO courses (course_code, course_name, description) 
+VALUES ('CS101', 'Introduction to Programming', 'Basic programming concepts');
